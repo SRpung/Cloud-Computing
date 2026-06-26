@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Deteksi & Analisis Diabetes</title>
+    <!-- Import Google Font Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #4f46e5;
+            --primary-glow: rgba(79, 70, 229, 0.4);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --warning: #ef4444;
+            --warning-glow: rgba(239, 68, 68, 0.4);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative background elements */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0) 70%);
+            bottom: -100px;
+            right: -100px;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        /* Result Alert Container */
+        .result-container {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            animation: slideDown 0.4s ease-out;
+            font-weight: 600;
+            font-size: 1.15rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-sehat {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: #34d399;
+            box-shadow: 0 0 15px var(--success-glow);
+        }
+
+        .result-diabetic {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--warning);
+            color: #f87171;
+            box-shadow: 0 0 15px var(--warning-glow);
+        }
+
+        .result-error {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+        }
+
+        .result-container span.status {
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-group label span.desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .form-group input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Buttons and Navigation */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+            background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            display: block;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-muted);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Sistem Deteksi Diabetes</h1>
+            <p>Masukkan data parameter medis untuk memprediksi potensi resiko diabetes menggunakan Random Forest model.</p>
+        </header>
+
+        <!-- Tampilkan Hasil Prediksi -->
+        {% if prediction %}
+            <div class="result-container {% if prediction == 'Diabetes' %}result-diabetic{% else %}result-sehat{% endif %}">
+                <div>Hasil Prediksi Deteksi Medis:</div>
+                <span class="status">
+                    {% if prediction == 'Diabetes' %}
+                        POSITIF DIABETES
+                    {% else %}
+                        SEHAT / NEGATIF
+                    {% endif %}
+                </span>
+                <div style="font-size: 0.85rem; font-weight: 300; margin-top: 5px;">
+                    {% if prediction == 'Diabetes' %}
+                        Harap segera konsultasikan kesehatan Anda dengan dokter ahli.
+                    {% else %}
+                        Tetap pertahankan gaya hidup sehat Anda!
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <div class="result-container result-error">
+                <div>Terjadi Kesalahan:</div>
+                <span>{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <form action="/predict" method="POST">
+            <div class="form-grid">
+                <!-- Pregnancies -->
+                <div class="form-group">
+                    <label for="Pregnancies">
+                        Pregnancies
+                        <span class="desc">Jumlah Kehamilan</span>
+                    </label>
+                    <input type="number" id="Pregnancies" name="Pregnancies" min="0" max="25" required
+                        value="{{ form_values.Pregnancies if form_values else '0' }}">
+                </div>
+
+                <!-- Glucose -->
+                <div class="form-group">
+                    <label for="Glucose">
+                        Glucose
+                        <span class="desc">Kadar Glukosa (mg/dL)</span>
+                    </label>
+                    <input type="number" id="Glucose" name="Glucose" min="0" max="300" required
+                        value="{{ form_values.Glucose if form_values else '120' }}">
+                </div>
+
+                <!-- BloodPressure -->
+                <div class="form-group">
+                    <label for="BloodPressure">
+                        Blood Pressure
+                        <span class="desc">Tekanan Darah (mmHg)</span>
+                    </label>
+                    <input type="number" id="BloodPressure" name="BloodPressure" min="0" max="200" required
+                        value="{{ form_values.BloodPressure if form_values else '80' }}">
+                </div>
+
+                <!-- SkinThickness -->
+                <div class="form-group">
+                    <label for="SkinThickness">
+                        Skin Thickness
+                        <span class="desc">Ketebalan Kulit (mm)</span>
+                    </label>
+                    <input type="number" id="SkinThickness" name="SkinThickness" min="0" max="100" required
+                        value="{{ form_values.SkinThickness if form_values else '20' }}">
+                </div>
+
+                <!-- Insulin -->
+                <div class="form-group">
+                    <label for="Insulin">
+                        Insulin
+                        <span class="desc">Kadar Insulin (mu U/ml)</span>
+                    </label>
+                    <input type="number" id="Insulin" name="Insulin" min="0" max="900" required
+                        value="{{ form_values.Insulin if form_values else '79' }}">
+                </div>
+
+                <!-- BMI -->
+                <div class="form-group">
+                    <label for="BMI">
+                        BMI
+                        <span class="desc">Indeks Massa Tubuh (kg/m²)</span>
+                    </label>
+                    <input type="number" id="BMI" name="BMI" step="0.1" min="0" max="70" required
+                        value="{{ form_values.BMI if form_values else '25.0' }}">
+                </div>
+
+                <!-- DiabetesPedigreeFunction -->
+                <div class="form-group">
+                    <label for="DiabetesPedigreeFunction">
+                        Pedigree Function
+                        <span class="desc">Silsilah Riwayat Diabetes</span>
+                    </label>
+                    <input type="number" id="DiabetesPedigreeFunction" name="DiabetesPedigreeFunction" step="0.001" min="0" max="3" required
+                        value="{{ form_values.DiabetesPedigreeFunction if form_values else '0.471' }}">
+                </div>
+
+                <!-- Age -->
+                <div class="form-group">
+                    <label for="Age">
+                        Age
+                        <span class="desc">Usia (Tahun)</span>
+                    </label>
+                    <input type="number" id="Age" name="Age" min="0" max="120" required
+                        value="{{ form_values.Age if form_values else '33' }}">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Mulai Deteksi Kesehatan</button>
+                <a href="/dash/" class="btn-secondary">Buka Dashboard Grafik Analisis</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>
